@@ -8,6 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Shift } from '../shift/shift.entity';
+import {Status} from '../../utils/enums/status'
 
 @Entity({ name: 'job_process' })
 export class Job {
@@ -40,4 +41,11 @@ export class Job {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @Column({
+    type: "enum",
+    enum: Status,
+    default: Status.PENDING
+  })
+  jobStatus: Status;
 }

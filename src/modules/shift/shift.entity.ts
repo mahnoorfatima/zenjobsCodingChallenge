@@ -8,7 +8,7 @@ import {
   Entity,
 } from 'typeorm';
 import { Job } from '../job/job.entity';
-
+import {Status} from '../../utils/enums/status'
 @Entity()
 export class Shift {
   @PrimaryGeneratedColumn('uuid')
@@ -40,4 +40,11 @@ export class Shift {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @Column({
+    type: "enum",
+    enum: Status,
+    default: Status.PENDING
+  })
+  shiftStatus: Status;
 }

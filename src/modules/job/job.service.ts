@@ -5,7 +5,9 @@ import { eachDayOfInterval } from 'date-fns';
 import { Repository } from 'typeorm';
 import { Job } from './job.entity';
 import { Shift } from '../shift/shift.entity';
-
+import { Constants} from '../../utils/constants';
+import {Status} from '../../utils/enums/status'
+import * as moment from 'moment'
 @Injectable()
 export class JobService {
   constructor(
@@ -38,7 +40,32 @@ export class JobService {
     return this.jobRepository.save(job);
   }
 
+  async cancelJob(jobId: string): Promise<Job> {
+    if (jobId) {
+      // get job by job id
+      const jobDetails = await this.getJobById(jobId);
+        // check job status doesn't exist (existing jobs will not have job status but can be updated by retrofit script) 
+        // or is Booked 
+      if(!jobDetails.jobStatus || jobDetails.jobStatus === Status.BOOKED) {
+        jobDetails.jobStatus = Status.CANCEL;
+        jobDetails.updatedAt = new Date();
+        jobDetails.shifts = jobDetails.shifts.map(shift => {
+          if (!shift.shiftStatus || shift.shiftStatus === Status.BOOKED) {
+            shift.shiftStatus = Status.CANCEL;
+          }
+          return shift;
+        });
+      }
+      return this.jobRepository.save(jobDetails);
+    }
+  }
+
   public async getJobs(): Promise<Job[]> {
     return this.jobRepository.find();
+  }
+
+
+  public async getJobById(jobId: string): Promise<Job> {
+    return this.jobRepository.findOne(jobId);
   }
 }
