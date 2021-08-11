@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get } from '@nestjs/common';
+import { Controller, Post, Body, Get, Patch, HttpCode, ParseUUIDPipe, Param} from '@nestjs/common';
 import { v4 as UUIDv4 } from 'uuid';
 import { JobService } from './job.service';
 import { ResponseDto } from '../../utils/ResponseDto';
@@ -17,5 +17,14 @@ export class JobController {
   ): Promise<ResponseDto<JobRequestResponse>> {
     const job = await this.jobService.createJob(UUIDv4(), dto.start, dto.end);
     return new ResponseDto<JobRequestResponse>(new JobRequestResponse(job.id));
+  }
+
+  @Patch(':jobId/cancel')
+  @HttpCode(204)
+  async cancelJob(
+    @Param('jobId', new ParseUUIDPipe()) jobId: string
+  ): Promise<ResponseDto<JobRequestResponse>> {
+    const updatedJob = await this.jobService.cancelJob(jobId);
+    return new ResponseDto<JobRequestResponse>(new JobRequestResponse(updatedJob.id));
   }
 }
