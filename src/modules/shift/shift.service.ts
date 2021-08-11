@@ -97,9 +97,6 @@ export class ShiftService {
       }
       // update shift status to cancel
       await this.repository.save(shiftsByTalent);
-      // if all shifts are canceled then Job status should also be set cancel
-      const jobService = new JobService(shiftsByTalent.job);
-      await jobService.cancelJob(shiftsByTalent.job.jobId);
       // create replacement shifts 
       return this.createReplacementShifts(shiftsByTalent);
     } catch (error) {
