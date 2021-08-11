@@ -5,9 +5,7 @@ import { eachDayOfInterval } from 'date-fns';
 import { Repository } from 'typeorm';
 import { Job } from './job.entity';
 import { Shift } from '../shift/shift.entity';
-import { Constants} from '../../utils/constants';
 import {Status} from '../../utils/enums/status'
-import * as moment from 'moment'
 @Injectable()
 export class JobService {
   constructor(
