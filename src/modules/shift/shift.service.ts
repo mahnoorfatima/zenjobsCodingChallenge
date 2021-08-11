@@ -2,8 +2,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { Shift } from './shift.entity';
-import {Status} from '../../utils/enums/status'
-
+import { Status } from '../../utils/enums/status';
+import { JobService } from '../job/job.service';
+import { ZenJobError } from '../../utils/error/zenjob-error.js'
+import { v4 as UUIDv4 } from 'uuid';
 
 @Injectable()
 export class ShiftService {
@@ -34,7 +36,10 @@ export class ShiftService {
       this.repository.save(shift);
     });
   }
-
+  /**
+   * @param oldShift {Shift}
+   * @returns {Promise<*>}
+   */
   public async createReplacementShifts(oldShift: Shift): Promise<void> {
     const startTime = oldShift.startTime;
     const endTime = oldShift.endTime;
@@ -47,30 +52,59 @@ export class ShiftService {
     return this.repository.save(shift);
   }
 
+  /**
+   * @param shiftId {String}
+   * @returns {Promise<*>}
+   */
   public async cancelShiftById(shiftId: string): Promise<void> {
-    let shift = await this.repository.findOne(shiftId);
-    if (!shift.shiftStatus || shift.shiftStatus === Status.BOOKED) {
-      shift.shiftStatus = Status.CANCEL;
-      this.repository.save(shift);
+    try {
+      let shift = await this.repository.findOne(shiftId);
+      // get shifts against jobId
+      let shifts = await this.getShifts(shift.job.jobId);
+      // check if single shift exist against shift's jobId then cancel the job status as well
+      if (shifts && shifts.length === 1) {
+        const jobService = new JobService(shift.job);
+        await jobService.cancelJob(shift.job.jobId);
+      }
+      if (!shift.shiftStatus || shift.shiftStatus === Status.BOOKED) {
+        shift.shiftStatus = Status.CANCEL;
+        return this.repository.save(shift);
+      }
+    } catch (error) {
+      throw new ZenJobError(500, JSON.stringify(error));
     }
   }
 
+  /**
+   * @param talentId {String}
+   * @returns {Promise<*>}
+   */
   public async cancelShiftsByTalent(talentId: string): Promise<void> {
-    let shiftsByTalent = await this.repository.find({
-      where: {
-        talentId: talentId,
-      },
-    });
-    shiftsByTalent.map(shift => {
-      if (!shift.shiftStatus || shift.shiftStatus === Status.BOOKED) {
-        shift.shiftStatus = Status.CANCEL;
+    try {
+      let shiftsByTalent = await this.repository.find({
+        where: {
+          talentId: talentId,
+        },
+      });
+      shiftsByTalent.map(shift => {
+        if (!shift.shiftStatus || shift.shiftStatus === Status.BOOKED) {
+          shift.shiftStatus = Status.CANCEL;
+        }
+        return shift;
+      });
+      if (!shiftsByTalent.job && !shiftsByTalent.job.jobId) {
+        throw new ZenJobError(500, 'job doesn\'t exist against job shifts');
       }
-      return shift;
-    });
-    // update shift status to cancel
-    await this.repository.save(shiftsByTalent);
-    // create replacement shifts 
-    return this.createReplacementShifts(shiftsByTalent);
+      // update shift status to cancel
+      await this.repository.save(shiftsByTalent);
+      // if all shifts are canceled then Job status should also be set cancel
+      const jobService = new JobService(shiftsByTalent.job);
+      await jobService.cancelJob(shiftsByTalent.job.jobId);
+      // create replacement shifts 
+      return this.createReplacementShifts(shiftsByTalent);
+    } catch (error) {
+      throw new ZenJobError(500, JSON.stringify(error));
+    }
   }
 }
 
