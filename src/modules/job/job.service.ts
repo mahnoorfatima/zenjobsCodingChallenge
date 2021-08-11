@@ -40,7 +40,6 @@ export class JobService {
 
   async cancelJob(jobId: string): Promise<Job> {
     if (jobId) {
-      // get job by job id
       const jobDetails = await this.getJobById(jobId);
         // check job status doesn't exist (existing jobs will not have job status but can be updated by retrofit script) 
         // or is Booked 

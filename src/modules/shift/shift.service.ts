@@ -35,12 +35,42 @@ export class ShiftService {
     });
   }
 
+  public async createReplacementShifts(oldShift: Shift): Promise<void> {
+    const startTime = oldShift.startTime;
+    const endTime = oldShift.endTime;
+    const shift = new Shift();
+    shift.id = UUIDv4();
+    shift.job = oldShift.job;
+    shift.startTime = startTime;
+    shift.endTime = endTime;
+    shift.shiftStatus = Status.PENDING;
+    return this.repository.save(shift);
+  }
+
   public async cancelShiftById(shiftId: string): Promise<void> {
     let shift = await this.repository.findOne(shiftId);
     if (!shift.shiftStatus || shift.shiftStatus === Status.BOOKED) {
       shift.shiftStatus = Status.CANCEL;
       this.repository.save(shift);
     }
+  }
+
+  public async cancelShiftsByTalent(talentId: string): Promise<void> {
+    let shiftsByTalent = await this.repository.find({
+      where: {
+        talentId: talentId,
+      },
+    });
+    shiftsByTalent.map(shift => {
+      if (!shift.shiftStatus || shift.shiftStatus === Status.BOOKED) {
+        shift.shiftStatus = Status.CANCEL;
+      }
+      return shift;
+    });
+    // update shift status to cancel
+    await this.repository.save(shiftsByTalent);
+    // create replacement shifts 
+    return this.createReplacementShifts(shiftsByTalent);
   }
 }
 
