@@ -47,4 +47,20 @@ export class ShiftController {
   ): Promise<void> {
     this.shiftService.bookTalent(shiftId, dto.talent);
   }
+
+  @Patch(':shiftId/cancel')
+  @HttpCode(204)
+  async cancelShift(
+    @Param('shiftId', new ParseUUIDPipe()) shiftId: string,
+  ): Promise<void> {
+    this.shiftService.cancelShiftById(shiftId);
+  }
+
+  @Patch(':talentId/cancel')
+  @HttpCode(204)
+  async cancelShiftsByTalentId(
+    @Param('talentId', new ParseUUIDPipe()) talentId: string,
+  ): Promise<void> {
+    this.shiftService.cancelShiftsByTalent(talentId);
+  }
 }

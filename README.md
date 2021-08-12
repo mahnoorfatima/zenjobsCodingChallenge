@@ -1,69 +1,19 @@
 # Zenjob Coding Challenge
 
-This is a **coding challenge** intended for **full-stack engineers**, containing **three different tasks**. For finishing Tasks A, B and C with some documentation, you should not need to invest more than **2 hours**.
+=================================================
 
-## Introduction
 
-This repository consists of a simplified version of Zenjob's platform:
+This update will add the feature to cancel Job and its Shifts
 
-- *Companies* order *jobs*
-- Each *job* contains one or more *shifts*
-- *Talents* (workers) can be booked for *shifts*
+1. Cancel the Job by JobId:
 
-### No bootstrapping needed
+This fetaure allows to cancel any Job by its Job id. This will cancel all the shifts associated with Job
 
-To allow you to dive right into it, there is a simplified version of a job service provided, which already contains the following features:
 
-- Creating a *job* with multiple shifts
-- Fetching the *shifts* for a specific *job*
-- Booking a *talent* to a *shift*
+2. Cancel a single Shift 
 
-Feel free to adjust it as much as you like.
+This will allow user (company) to cancel a single shift against shiftId. If job for the to be canceled shift will have only one shift, it will change the status of Job to be cancel as well
 
-### Product boundary conditions
+4. Cancel the all shifts by talentId
 
-There are certain boundary conditions defined which **must** be met by the service.
-
-- A *job* should have at least one *shift*
-- The start date of a *job* cannot be in the past
-- The end date of a *job* should be after the start date
-- A *shift*'s length cannot exceed 8 hours
-- A *shift*'s length has to be at least 2 hours
-- A *talent* cannot work consecutive shifts, there has to be at least a 6 hours break between *shifts* for the same *talent*
-
-## Objective
-
-Your job is to modify the existing service so it satisfies the following requirements:
-
-### Task A
-
-- **AS** a *company*
-- **I CAN** cancel a *job* I ordered previously
-- **AND** if the *job* gets cancelled all of its *shifts* get cancelled as well
-
-### Task B
-
-- **AS** a *company*
-- **I CAN** cancel a single *shift* of a job I ordered previously
-
-### Task C
-
-- **AS** a *company*
-- **I CAN** cancel all of my shifts which were booked for a specific talent
-- **AND** replacement shifts are created with the same dates
-
-## Evaluation criteria
-
-Your submission will be evaluated by at least 2 people on the following criteria:
-
-- Documentation
-- API design
-- System design
-- Bugs
-- Completeness of tasks
-- Tests
-- Code styling
-
-## Final notes
-
-If you have any questions, feel free to reach out to us at any time.
+This will cancel all shift by talent Id. For each canceled shift create replacement shifts
